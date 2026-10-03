@@ -1,6 +1,7 @@
 #include "PluginHostBindings.hpp"
 #include <pybind11/pybind11.h>
 
+#include "libslic3r_version.h"
 #include <libslic3r/Model.hpp>
 #include <libslic3r/PresetBundle.hpp>
 #include <slic3r/GUI/GUI.hpp>
@@ -68,6 +69,14 @@ void host_bindings::register_app(py::module_& host)
             throw std::runtime_error("OrcaSlicer application is not initialized");
         return GUI::into_u8(GUI::wxGetApp().current_language_code_safe());
     });
+    // Version of the running host ("2.5.0-dev", "2.4.2", ...): the same
+    // SoftFever_VERSION the slicing-pipeline context already exposes as
+    // ctx.orca_version, so Script, Pages and printer-agent plugins can gate on
+    // the host version too. A compile-time constant: no wx dependency, no
+    // audit event, and it never touches the deny-listed app config.
+    host.def("app_version", []() -> std::string {
+        return SoftFever_VERSION;
+    }, "Return the OrcaSlicer version string of the running host (SoftFever_VERSION).");
 }
 
 } // namespace Slic3r
